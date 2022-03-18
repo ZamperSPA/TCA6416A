@@ -1,7 +1,8 @@
 // TCA6416A module
-// Copyright 2019 Håkon Nessjøen
-#ifndef TCA6416A_H
-#define TCA6416A_H
+#pragma once
+
+//#ifndef TCA6416A_H
+//#define TCA6416A_H
 
 #if (ARDUINO >= 100)
 #include "Arduino.h"
@@ -13,7 +14,7 @@
 
 //#define DEBUG_TCA6416A
 
-#define TCA6416A_BITS 15 //0 - 8
+#define TCA6416A_BITS 8 //0 - 8
 #define TCA6416A_DEFAULT_ADDRESS 0x20
 #define TCA6416A_ADDRESS_INVALID 0xFF
 
@@ -57,7 +58,7 @@ public:
 	TCA6416A();
 
 	// begin initializes the Wire port and I/O expander
-	boolean begin(void);
+	TCA6416A_error_t begin(void);
 	// give begin a TwoWire port to specify the I2C port
 	TCA6416A_error_t begin(TwoWire& wirePort);
 
@@ -65,11 +66,16 @@ public:
 	void setDebugStream(Stream& debugPort = Serial);
 
 	// pinMode can set a pin (0-3) to INPUT or OUTPUT
-	TCA6416A_error_t pinMode(uint8_t pin, uint8_t mode, uint16_t custom_address = TCA6416A_DEFAULT_ADDRESS);
+	TCA6416A_error_t pinModes(uint8_t pin, uint8_t mode, uint16_t custom_address = TCA6416A_DEFAULT_ADDRESS);
+
+	TCA6416A_error_t portMode(uint8_t mode, uint16_t custom_address = TCA6416A_DEFAULT_ADDRESS);
 
 	// digitalWrite and write can be used to set a pin HIGH or LOW
 	TCA6416A_error_t digitalWrite(uint8_t pin, uint8_t value, uint16_t custom_address = TCA6416A_DEFAULT_ADDRESS);
 	TCA6416A_error_t write(uint8_t pin, uint8_t value, uint16_t custom_address = TCA6416A_DEFAULT_ADDRESS);
+
+
+	TCA6416A_error_t digitalPortWrite(uint8_t value, uint16_t custom_address = TCA6416A_DEFAULT_ADDRESS);
 
 	// readReg can be used to read the whole input register (4 bits)
 	uint8_t readReg();
@@ -96,4 +102,4 @@ private:
 	TCA6416A_error_t writeI2CRegister(uint8_t data, TCA6416A_REGISTER_t registerAddress);
 };
 
-#endif // TCA6416A_H
+//#endif // TCA6416A_H

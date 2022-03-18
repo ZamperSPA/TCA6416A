@@ -1,6 +1,6 @@
 // TCA6416A module
-// Copyright 2019 Håkon Nessjøen
-#include <TCA6416A.h>
+
+#include "TCA6416A.h"
 
 #ifdef DEBUG_TCA6416A
 #define TCA6416A_DEBUG(x) if (_debugPort != NULL) { _debugPort->print(x);}
@@ -33,12 +33,17 @@ TCA6416A_error_t TCA6416A::begin(TwoWire &wirePort)
 	return TCA6416A_ERROR_SUCCESS;
 }
 
+TCA6416A_error_t TCA6416A::begin() 
+{
+	return begin(Wire);
+}
+
 void TCA6416A::setDebugStream(Stream& debugPort)
 {
 	_debugPort = &debugPort;
 }
 
-TCA6416A_error_t TCA6416A::pinMode(uint8_t pin, uint8_t mode, uint16_t custom_address)
+TCA6416A_error_t TCA6416A::pinModes(uint8_t pin, uint8_t mode, uint16_t custom_address)
 {
 	TCA6416A_error_t err;
 	uint8_t cfgRegister = 0;
@@ -59,6 +64,16 @@ TCA6416A_error_t TCA6416A::pinMode(uint8_t pin, uint8_t mode, uint16_t custom_ad
 		cfgRegister |= (1 << pin);
 	}
 	return writeI2CRegister(cfgRegister, _register);
+}
+
+TCA6416A_error_t TCA6416A::portMode(uint8_t mode, uint16_t custom_address)
+{
+	Serial.println("portmode");
+	if (mode == INPUT)
+	{
+		return writeI2CRegister(0xfF, TCA6416A_REGISTER_CONFIGURATION_0);//todo como entrada
+	}
+		return writeI2CRegister(0x00, TCA6416A_REGISTER_CONFIGURATION_0);//todos como salida
 }
 
 TCA6416A_error_t TCA6416A::write(uint8_t pin, uint8_t value, uint16_t custom_address)
@@ -83,6 +98,15 @@ TCA6416A_error_t TCA6416A::write(uint8_t pin, uint8_t value, uint16_t custom_add
 	}
 	return writeI2CRegister(outputRegister, _register);
 }
+
+TCA6416A_error_t TCA6416A::digitalPortWrite(uint8_t value, uint16_t custom_address)
+{
+	if (value == HIGH)
+	{
+		return writeI2CRegister(0xfF, TCA6416A_REGISTER_OUTPUT_PORT_0);//todo como entrada
+	}
+		return writeI2CRegister(0x00, TCA6416A_REGISTER_OUTPUT_PORT_0);//todos como salida
+	}
 
 TCA6416A_error_t TCA6416A::digitalWrite(uint8_t pin, uint8_t value, uint16_t custom_address)
 {
@@ -156,8 +180,6 @@ TCA6416A_error_t TCA6416A::revert(uint8_t pin, uint16_t custom_address)
 
 uint8_t TCA6416A::getBitReg(uint8_t pin, uint8_t conf)
 {
-	uint8_t asd = 0;
-
 	if(conf == 0)
 		_register = TCA6416A_REGISTER_INPUT_PORT_0;
 	else if(conf == 1)
@@ -185,6 +207,7 @@ TCA6416A_error_t TCA6416A::readI2CBuffer(uint8_t* dest, TCA6416A_REGISTER_t star
 {
 	TCA6416A_DEBUGLN((STORAGE("(readI2CBuffer): read ") + String(len) +
 		STORAGE(" @ 0x") + String(startRegister, HEX)));
+	//Serial.println((STORAGE("(readI2CBuffer): read ") + String(len) +STORAGE(" @ 0x") + String(startRegister, HEX)));
 	if (_deviceAddress == TCA6416A_ADDRESS_INVALID)
 	{
 		TCA6416A_DEBUGLN(STORAGE("    ERR (readI2CBuffer): Invalid address"));
@@ -221,6 +244,7 @@ TCA6416A_error_t TCA6416A::writeI2CBuffer(uint8_t* src, TCA6416A_REGISTER_t star
 	{
 		_i2cPort->write(src[i]);
 	}
+
 	if (_i2cPort->endTransmission(true) != 0)
 	{
 		return TCA6416A_ERROR_WRITE;
